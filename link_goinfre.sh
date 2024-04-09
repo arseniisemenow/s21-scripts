@@ -1,25 +1,18 @@
 #!/bin/bash
 
-rm -rf ~/Library/Containers/com.docker.docker
-mkdir -p ~/goinfre/Docker/Data
-ln -s ~/goinfre/Docker ~/Library/Containers/com.docker.docker
+paths=(
+    "$HOME/Library/Containers/com.docker.docker"
+    "$HOME/Applications"
+    "$HOME/Library/Caches/Google"
+    "$HOME/Library/Caches/JetBrains"
+    "$HOME/Library/Application Support/Google"
+    "$HOME/Library/Application Support/JetBrains"
+)
 
-# Search for the directory matching the pattern
-telegram_dir=$(find /Users/evangelm/Library/Group\ Containers/ -type d -name '*.ru.keepcoder.Telegram')
-exit;
-Check if a directory is found
-if [ -n "$telegram_dir" ]; then
-    echo "Telegram directory found: $telegram_dir"
-    new_telegram_dir=~/goinfre/Telegram/$(basename "$telegram_dir")
-        
-    echo "$telegram_dir"
-    echo "$new_telegram_dir"
-    
-    mkdir -p "$new_telegram_dir"
-    
-    cp -rf "$telegram_dir"/ "$new_telegram_dir"/
-    rm -rf "$telegram_dir"
-    ln -s "$new_telegram_dir" "$telegram_dir"
-else
-    echo "Telegram directory not found."
-fi
+destination="$HOME/goinfre"
+
+# Iterate over each path in the array
+for path in "${paths[@]}"; do
+    # Execute the move_and_link.sh script for each path
+    sh ~/Documents/scripts/move_and_link.sh "$path" "$destination"
+done
