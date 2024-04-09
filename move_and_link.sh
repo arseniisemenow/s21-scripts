@@ -5,7 +5,7 @@ move_and_link() {
     local target_dir=$2
 
     local source_relative_path=${source_dir#$HOME/}
-    local linked_dir_name="linked_$(echo "$source_relative_path" | sed -E 's|/|_|g' | sed -E 's|([a-z])([A-Z])|\1_\2|g' | sed -E 's/(^|_)([a-z])/\U\2/g')"
+    local linked_dir_name="linked_$(echo "$source_relative_path" | sed -E 's|/|_|g' | sed -E 's|([a-z])([A-Z])|\1_\2|g' | sed -E 's/(^|_)([a-z])/\U\2/g' | sed -E 's/ /_/g')"
 
     local dest_dir_name="$linked_dir_name"
 

@@ -1,1 +1,3 @@
-sh ~/Documents/scripts/move_and_link.sh "/Users/evangelm/Applications" "/Users/evangelm/goinfre"
+sh ~/Documents/scripts/move_and_link.sh \
+"$HOME/Applications" \
+"$HOME/goinfre"
