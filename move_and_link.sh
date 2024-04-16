@@ -29,8 +29,10 @@ move_and_link() {
         echo "${GREEN}$source_dir is already a symbolic link.${NC}"
 
         if ! [ -d "$dest_dir" ]; then
-            mkdir -p "$(readlink $source_dir)"
-            echo "${YELLOW}$(readlink $source_dir) was not created, It is created now ${NC}"
+            echo "I wanna create: $(readlink \"$dest_dir\")"
+#            mkdir -p "$(readlink \"$source_dir\")"
+            mkdir -p "$dest_dir"
+            echo "${YELLOW}$(readlink $dest_dir) was not created, It is created now ${NC}"
         fi
         FINISHED_FLAG=1
     elif [ -d "$source_dir" ]; then

@@ -20,4 +20,4 @@
 --add-opens=java.base/jdk.internal.org.objectweb.asm.tree=ALL-UNNAMED
 
 -Didea.suppressed.plugins.set.selector=classic
--javaagent:/Users/evangelm/Documents/scripts/jetbra/ja-netfilter.jar=jetbrains
+-javaagent:/Users/evangelm/Documents/Scripts/jetbra/ja-netfilter.jar=jetbrains
