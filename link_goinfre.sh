@@ -10,11 +10,11 @@ paths=(
 #    "$HOME/Library/Containers/com.docker.docker"
 #    "$HOME/Library/Containers/com.apple.Safari"
 #    "$HOME/Library/Java"
-    "$HOME/folder_none"
+#    "$HOME/folder_none"
 #    "$HOME/link_none"
 #    "$HOME/none_none"
 #    "$HOME/folder_folder"
-#    "$HOME/link_folder"
+    "$HOME/link_folder"
 #    "$HOME/none_folder"
 )
 
@@ -25,11 +25,11 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 ORANGE='\033[0;33m'
 NC='\033[0m'
-FOLDER_FOLDER=100
-FOLDER_LINK=101
-FOLDER_NONE=102
-LINK_FOLDER=103
-LINK_LINK=104
+FOLDER_FOLDER=100 # Done
+FOLDER_LINK=101 # Unreal
+FOLDER_NONE=102 # Done
+LINK_FOLDER=103 # Done
+LINK_LINK=104 # Unreal
 LINK_NONE=105
 NONE_FOLDER=106
 NONE_LINK=107
@@ -40,8 +40,9 @@ get_case(){
       local source_path_dir=$1
       local target_path=$2
 
-      local source_relative_path=${source_path_dir#$HOME/}
-      local target_dir_name="linked_$(echo "$source_relative_path" | sed -E 's|/|_|g' | sed -E 's|([a-z])([A-Z])|\1_\2|g' | sed -E 's/(^|_)([a-z])/\U\2/g' | sed -E 's/ /_/g')"
+      local source_relative_path=$(basename "$source_path_dir")
+    local target_dir_name=$(get_linked_name $source_path_dir)
+
 
       local target_dir_name="$target_dir_name"
 
@@ -61,7 +62,7 @@ get_case(){
       return $FOLDER_FOLDER
     elif [[ -d "$source_path_dir" && -L $target_path_dir ]]; then
       echo "Folder - Link"
-      return FOLDER_LINK
+      return $FOLDER_LINK
     elif [[ -d "$source_path_dir" && ! -e $target_path_dir ]]; then
       echo "Folder - None"
       return $FOLDER_NONE
@@ -80,9 +81,23 @@ get_case(){
 }
 
 handle_folder_folder(){
-  echo "Folder - Folder case"
-   # Real case
-  return 0
+  local source_path=$1
+  local source_dir_name=$2
+  local target_path=$3
+  local target_dir_name=$4
+  local error_code=0
+
+  # Removing target directory
+  rm -rf "${target_path:?}/${target_dir_name}"
+  # ^           ^           ^           ^
+  # |           |           |           |
+  # Optional moment: You can chooses what directory is more
+  # important for you. By default more important is source directory
+
+  handle_folder_none $source_path $source_dir_name $target_path $target_dir_name
+  error_code=$?
+
+  return $error_code
 }
 handle_folder_link(){
   # Unreal case
@@ -95,40 +110,61 @@ handle_folder_none(){
   local target_dir_name=$4
   local error_code=0
 
+  # Make directory in the target destination
   mkdir "$target_path/$target_dir_name"
   error_code=$?
   if ! (($error_code == 0)); then
     return $error_code
   fi
 
-  mv -if "$source_path/$source_dir_name/*" "$target_path/$target_dir_name"
-  error_code=$?
-  if ! (($error_code == 0)); then
-    return $error_code
+  # Check if the source directory empty
+  if [ "$(ls -A "$source_path/$source_dir_name")" ]; then
+      # Copying data from source directory to target directory
+      cp -rf "$source_path/$source_dir_name/"* "$target_path/$target_dir_name"
+      error_code=$?
+      if ! (($error_code == 0)); then
+        return $error_code
+      fi
   fi
 
+  # Removing source directory
+  rm -rf "${source_path:?}/${source_dir_name}"
+
+  # Linking source directory to target directory
   ln -s "$target_path/$target_dir_name" "$source_path/$source_dir_name"
   error_code=$?
   if ! (($error_code == 0)); then
     return $error_code
   fi
 
-  echo "Folder - None case"
   return $error_code
 }
 handle_link_folder(){
-  echo "Link - Folder case"
-  # Real case
-  return 0
+    # Unreal case
+    return 0
 }
 handle_link_link(){
-  # Unreal case
-  return 0
+    # Unreal case
+    return 0
 }
 handle_link_none(){
-  echo "Link - None case"
-  # Real case
-  return 0
+    local source_path=$1
+    local source_dir_name=$2
+    local target_path=$3
+    local target_dir_name=$4
+    local error_code=0
+
+    if ! [ "$(readlink "$source_path"/"$source_dir_name")" == "$target_path"/"$target_dir_name" ]; then
+        return 1
+    fi
+
+    mkdir "$target_path"/"$target_dir_name"
+    error_code=$?
+    if ! (($error_code == 0)); then
+      return $error_code
+    fi
+
+    return $error_code
 }
 handle_none_folder(){
   echo "None - Folder case"
