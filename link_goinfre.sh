@@ -1,24 +1,18 @@
 #!/bin/bash
 
 paths=(
-#    "$HOME/Applications"
-#    "$HOME/Library/Caches/Google"
-#    "$HOME/Library/Caches/JetBrains"
-#    "$HOME/Library/Caches/Homebrew"
-#    "$HOME/Library/Application Support/Google"
-#    "$HOME/Library/Application Support/JetBrains"
-#    "$HOME/Library/Containers/com.docker.docker"
-#    "$HOME/Library/Containers/com.apple.Safari"
-#    "$HOME/Library/Java"
-#    "$HOME/folder_none"
-#    "$HOME/link_none"
-    "$HOME/none_none"
-#    "$HOME/folder_folder"
-#    "$HOME/link_folder"
-#    "$HOME/none_folder"
+    "$HOME/Applications"
+    "$HOME/Library/Caches/Google"
+    "$HOME/Library/Caches/JetBrains"
+    "$HOME/Library/Caches/Homebrew"
+    "$HOME/Library/Application Support/Google"
+    "$HOME/Library/Application Support/JetBrains"
+    "$HOME/Library/Containers/com.docker.docker"
+    "$HOME/Library/Containers/com.apple.Safari"
+    "$HOME/Library/Java"
 )
 
-destination="$HOME/goinfre/link_test"
+destination="$HOME/goinfre/link_test_2"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -38,6 +32,28 @@ NONE_LINK=107 # Unreal
 NONE_NONE=108 # Done
 UNKNOWN_UNKNOWN=66
 
+FOLDER_FOLDER_OUTPUT_STRING="Folder-Folder"
+FOLDER_LINK_OUTPUT_STRING="Folder-Link"
+FOLDER_NONE_OUTPUT_STRING="Folder-None"
+LINK_FOLDER_OUTPUT_STRING="Link-Folder"
+LINK_LINK_OUTPUT_STRING="Link-Link"
+LINK_NONE_OUTPUT_STRING="Link-None"
+NONE_FOLDER_OUTPUT_STRING="None-Folder"
+NONE_LINK_OUTPUT_STRING="None-Link"
+NONE_NONE_OUTPUT_STRING="None-None"
+
+OUTPUT_STRING_ARRAY=(
+  "$FOLDER_FOLDER_OUTPUT_STRING"
+  "$FOLDER_LINK_OUTPUT_STRING"
+  "$FOLDER_NONE_OUTPUT_STRING"
+  "$LINK_FOLDER_OUTPUT_STRING"
+  "$LINK_LINK_OUTPUT_STRING"
+  "$LINK_NONE_OUTPUT_STRING"
+  "$NONE_FOLDER_OUTPUT_STRING"
+  "$NONE_LINK_OUTPUT_STRING"
+  "$NONE_NONE_OUTPUT_STRING"
+)
+
 get_case(){
     local source_path_dir=$1
     local target_path=$2
@@ -53,31 +69,22 @@ get_case(){
     local target_path_dir="$target_path/$target_dir_name"
 
     if [[ -L "$source_path_dir" && -d $target_path_dir ]]; then
-      echo "Link - Folder"
       return $LINK_FOLDER
     elif [[ -L "$source_path_dir" && -L $target_path_dir ]]; then
-      echo "Link - Link"
       return $LINK_LINK
     elif [[ -L "$source_path_dir" && ! -e $target_path_dir ]]; then
-      echo "Link - None"
       return $LINK_NONE
     elif [[ -d "$source_path_dir" && -d $target_path_dir ]]; then
-      echo "Folder - Folder"
       return $FOLDER_FOLDER
     elif [[ -d "$source_path_dir" && -L $target_path_dir ]]; then
-      echo "Folder - Link"
       return $FOLDER_LINK
     elif [[ -d "$source_path_dir" && ! -e $target_path_dir ]]; then
-      echo "Folder - None"
       return $FOLDER_NONE
     elif [[ ! -e "$source_path_dir" && -d $target_path_dir ]]; then
-      echo "None - Folder"
       return $NONE_FOLDER
     elif [[ ! -e "$source_path_dir" && -L $target_path_dir ]]; then
-      echo "None - Link"
       return $NONE_LINK
     elif [[ ! -e "$source_path_dir" && ! -e $target_path_dir ]]; then
-      echo "None - None"
       return $NONE_NONE
     fi
 
@@ -281,60 +288,6 @@ move_and_link() {
       return_code=$?
     fi
     return $return_code
-
-#    local FINISHED_FLAG=0
-#
-#    if ! [ "$(readlink \"$source_path_dir\")" == $target_path_dir ]; then
-#        rm "$source_path_dir"
-#    fi
-#
-#    if ! [ -d "$source_path_dir" ]; then
-#        mkdir -p "$source_path_dir"
-#    fi
-#
-#
-#    if [[ -d "$target_path/$target_dir_name" && -d "$source_path_dir" ]]; then
-#            mv -f "$source_path_dir" "$target_path"
-#            mv -f "$target_path/$source_dir_name" "$target_path/$target_dir_name"
-#        echo
-#    fi
-#
-##    exit 1
-#
-#    if [ -L "$source_path_dir" ]; then
-##        echo "${GREEN}$source_path_dir is already a symbolic link.${NC}"
-#
-#        if ! [ -d "$target_path_dir" ]; then
-##            echo "I wanna create: $(readlink \"$target_path_dir\")"
-##            mkdir -p "$(readlink \"$source_path_dir\")"
-#            mkdir -p "$target_path_dir"
-##            echo "${YELLOW}$(readlink $target_path_dir) was not created, It is created now ${NC}"
-#        fi
-#        FINISHED_FLAG=1
-#    elif ! [ -d "$source_path_dir" ]; then
-#        mkdir -p "$source_path_dir"
-##        echo "${YELLOW}$source_path_dir is not a directory. Creating. I am gonna move it to $target_path${NC}"
-#    fi
-#    if [[ FINISHED_FLAG -eq 0 ]]; then
-##        echo "Finished flag is not true, I am gonna make move and link"
-#        if [[ -d "$target_path/$target_dir_name" && -d "$source_path_dir" ]]; then
-#            # Removing source directory, because we already have such directory in goinfre
-##            echo "${ORANGE}Removing $source_path_dir, because it is existed in goinfre already ${NC}"
-##            mv "$source_path_dir" "$target_path/$target_dir_name"
-##            rm -r "$source_path_dir"
-#            echo
-#        else
-#            # Moving source directory to the target directory
-##            echo "${ORANGE}Moving source directory to the target directory${NC}"
-#            mv -f "$source_path_dir" "$target_path"
-##            echo "${ORANGE}Renaming source directory after moving to the target directory${NC}"
-#            # Renaming source directory after moving to the target directory
-#            mv -f "$target_path/$source_dir_name" "$target_path/$target_dir_name"
-#        fi
-#
-#        # Linking source directory to the target directory
-#        ln -s "$target_path/$target_dir_name" "$source_path_dir"
-#    fi
 }
 
 let COUNTER=1
@@ -344,10 +297,17 @@ mkdir -p "$destination"
 
 for path in "${paths[@]}"; do
     get_case "$path" "$destination"
-    let CURRENT_CASE=$?
-    move_and_link "$path" "$destination" $CURRENT_CASE
-    let RETURN_CODE=$?
-#    echo ""$path" "$destination" CURRENT_CASE: $CURRENT_CASE"
-#    printf "Linked[${GREEN}%d${NC}/%d]: %s\n" $COUNTER $TOTAL_COUNT "$path"
+    let current_case=$?
+
+    move_and_link "$path" "$destination" $current_case
+    let return_code=$?
+
+    let normalized_index=$current_case-100
+
+    if (( return_code == 0 )); then
+        echo "[${COUNTER}/${TOTAL_COUNT}][${OUTPUT_STRING_ARRAY[$normalized_index]}]. Path: ${path}. ${GREEN}[SUCCESS]${NC} "
+    else
+        echo "[${COUNTER}/${TOTAL_COUNT}][${OUTPUT_STRING_ARRAY[$normalized_index]}]. Path: ${path}. ${RED}[FAIL]${NC} "
+    fi
     let COUNTER++
 done
