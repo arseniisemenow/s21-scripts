@@ -4,15 +4,15 @@ paths=(
     "$HOME/Applications"
     "$HOME/Library/Caches/Google"
     "$HOME/Library/Caches/JetBrains"
-    "$HOME/Library/Caches/Homebrew"
     "$HOME/Library/Application Support/Google"
     "$HOME/Library/Application Support/JetBrains"
     "$HOME/Library/Containers/com.docker.docker"
     "$HOME/Library/Containers/com.apple.Safari"
     "$HOME/Library/Java"
+    "$HOME/Pictures"
 )
 
-destination="$HOME/goinfre/link_test_2"
+destination="$HOME/goinfre/linked"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -105,7 +105,7 @@ handle_folder_folder(){
   # Optional moment: You can chooses what directory is more
   # important for you. By default more important is source directory
 
-  handle_folder_none $source_path $source_dir_name $target_path $target_dir_name
+  handle_folder_none "$source_path" "$source_dir_name" "$target_path" "$target_dir_name"
   error_code=$?
 
   return $error_code
@@ -115,28 +115,28 @@ handle_folder_link(){
   return 0
 }
 handle_folder_none(){
-  local source_path=$1
-  local source_dir_name=$2
-  local target_path=$3
-  local target_dir_name=$4
-  local error_code=0
+    local source_path=$1
+    local source_dir_name=$2
+    local target_path=$3
+    local target_dir_name=$4
+    local error_code=0
 
-  # Make directory in the target destination
-  make_target_directory "$target_path" "$target_dir_name"
-  error_code=$?
-  if ! (($error_code == 0)); then
-    return $error_code
-  fi
+    # Make directory in the target destination
+    make_target_directory "$target_path" "$target_dir_name"
+    error_code=$?
+    if ! (($error_code == 0)); then
+      return $error_code
+    fi
 
-  # Check if the source directory empty
-  if [ "$(ls -A "$source_path/$source_dir_name")" ]; then
-      # Copying data from source directory to target directory
-      cp -rf "$source_path/$source_dir_name/"* "$target_path/$target_dir_name"
-      error_code=$?
-      if ! (($error_code == 0)); then
-        return $error_code
-      fi
-  fi
+    # Check if the source directory empty
+    if [ "$(ls -A "$source_path/$source_dir_name")" ]; then
+        # Copying data from source directory to target directory
+        cp -rf "$source_path/$source_dir_name/"* "$target_path/$target_dir_name"
+        error_code=$?
+        if ! (($error_code == 0)); then
+          return $error_code
+        fi
+    fi
 
     # Removing source directory
     rm -rf "${source_path:?}/${source_dir_name}"
@@ -148,7 +148,16 @@ handle_folder_none(){
   return $error_code
 }
 handle_link_folder(){
-    # Unreal case
+    local source_path=$1
+    local source_dir_name=$2
+    local target_path=$3
+    local target_dir_name=$4
+    local error_code=0
+
+    if ! [ "$(readlink "$source_path"/"$source_dir_name")" == "$target_path"/"$target_dir_name" ]; then
+        rm "$source_path"/"$source_dir_name"
+        make_link "$source_path" "$source_dir_name" "$target_path" "$target_dir_name"
+    fi
     return 0
 }
 handle_link_link(){
@@ -162,10 +171,12 @@ handle_link_none(){
     local target_dir_name=$4
     local error_code=0
 
-    if ! [ "$(readlink "$source_path"/"$source_dir_name")" == "$target_path"/"$target_dir_name" ]; then
-        return 1
-    fi
 
+    if ! [ "$(readlink "$source_path"/"$source_dir_name")" == "$target_path"/"$target_dir_name" ]; then
+        rm "$source_path"/"$source_dir_name"
+        make_link "$source_path" "$source_dir_name" "$target_path" "$target_dir_name"
+    fi
+    # Create target directory
     make_target_directory "$target_path" "$target_dir_name"
     error_code=$?
     if ! (($error_code == 0)); then
@@ -246,45 +257,48 @@ move_and_link() {
     local source_path_dir=$1
     local target_path=$2
 
-    local source_path=$(dirname "$source_path_dir")
+    local source_path
+    source_path=$(dirname "$source_path_dir")
 
     local current_case=$3
 
-    local target_dir_name=$(get_linked_name $source_path_dir)
-    local source_dir_name=$(basename "$source_path_dir")
+    local target_dir_name
+    target_dir_name=$(get_linked_name "$source_path_dir")
+    local source_dir_name
+    source_dir_name=$(basename "$source_path_dir")
 
     local target_path_dir="$target_path/$target_dir_name"
 
     local return_code=0
 
-    if (( $current_case == $FOLDER_FOLDER )); then
-      handle_folder_folder $source_path $source_dir_name $target_path $target_dir_name
+    if (( current_case == FOLDER_FOLDER )); then
+      handle_folder_folder "$source_path" "$source_dir_name" "$target_path" "$target_dir_name"
       return_code=$?
-    elif (( $current_case == $FOLDER_LINK )); then
-      handle_folder_link $source_path $source_dir_name $target_path $target_dir_name
+    elif (( current_case == FOLDER_LINK )); then
+      handle_folder_link "$source_path" "$source_dir_name" "$target_path" "$target_dir_name"
       return_code=$?
-    elif (( $current_case == $FOLDER_NONE )); then
-      handle_folder_none $source_path $source_dir_name $target_path $target_dir_name
-      return_code=$?
-
-    elif (( $current_case == $LINK_FOLDER )); then
-      handle_link_folder $source_path $source_dir_name $target_path $target_dir_name
-      return_code=$?
-    elif (( $current_case == $LINK_LINK )); then
-      handle_link_link $source_path $source_dir_name $target_path $target_dir_name
-      return_code=$?
-    elif (( $current_case == $LINK_NONE )); then
-      handle_link_none $source_path $source_dir_name $target_path $target_dir_name
+    elif (( current_case == FOLDER_NONE )); then
+      handle_folder_none "$source_path" "$source_dir_name" "$target_path" "$target_dir_name"
       return_code=$?
 
-    elif (( $current_case == $NONE_FOLDER )); then
-      handle_none_folder $source_path $source_dir_name $target_path $target_dir_name
+    elif (( current_case == LINK_FOLDER )); then
+      handle_link_folder "$source_path" "$source_dir_name" "$target_path" "$target_dir_name"
       return_code=$?
-    elif (( $current_case == $NONE_LINK )); then
-      handle_none_link $source_path $source_dir_name $target_path $target_dir_name
+    elif (( current_case == LINK_LINK )); then
+      handle_link_link "$source_path" "$source_dir_name" "$target_path" "$target_dir_name"
       return_code=$?
-    elif (( $current_case == $NONE_NONE )); then
-      handle_none_none $source_path $source_dir_name $target_path $target_dir_name
+    elif (( current_case == LINK_NONE )); then
+      handle_link_none "$source_path" "$source_dir_name" "$target_path" "$target_dir_name"
+      return_code=$?
+
+    elif (( current_case == NONE_FOLDER )); then
+      handle_none_folder "$source_path" "$source_dir_name" "$target_path" "$target_dir_name"
+      return_code=$?
+    elif (( current_case == NONE_LINK )); then
+      handle_none_link "$source_path" "$source_dir_name" "$target_path" "$target_dir_name"
+      return_code=$?
+    elif (( current_case == NONE_NONE )); then
+      handle_none_none "$source_path" "$source_dir_name" "$target_path" "$target_dir_name"
       return_code=$?
     fi
     return $return_code
@@ -305,9 +319,9 @@ for path in "${paths[@]}"; do
     let normalized_index=$current_case-100
 
     if (( return_code == 0 )); then
-        echo "[${COUNTER}/${TOTAL_COUNT}][${OUTPUT_STRING_ARRAY[$normalized_index]}]. Path: ${path}. ${GREEN}[SUCCESS]${NC} "
+        echo "[${COUNTER}/${TOTAL_COUNT}][${OUTPUT_STRING_ARRAY[$normalized_index]}]. Path:${path} ${GREEN}[SUCCESS]${NC} "
     else
-        echo "[${COUNTER}/${TOTAL_COUNT}][${OUTPUT_STRING_ARRAY[$normalized_index]}]. Path: ${path}. ${RED}[FAIL]${NC} "
+        echo "[${COUNTER}/${TOTAL_COUNT}][${OUTPUT_STRING_ARRAY[$normalized_index]}]. Path:${path} ${RED}[FAIL]${NC} "
     fi
     let COUNTER++
 done
