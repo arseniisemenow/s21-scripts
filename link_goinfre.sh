@@ -12,9 +12,9 @@ paths=(
 #    "$HOME/Library/Java"
 #    "$HOME/folder_none"
 #    "$HOME/link_none"
-#    "$HOME/none_none"
+    "$HOME/none_none"
 #    "$HOME/folder_folder"
-    "$HOME/link_folder"
+#    "$HOME/link_folder"
 #    "$HOME/none_folder"
 )
 
@@ -25,28 +25,32 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 ORANGE='\033[0;33m'
 NC='\033[0m'
+
+# Here described codes for all possible binary cases, assuming we have three states of abstract item: Folder, Link, None
 FOLDER_FOLDER=100 # Done
 FOLDER_LINK=101 # Unreal
 FOLDER_NONE=102 # Done
 LINK_FOLDER=103 # Done
 LINK_LINK=104 # Unreal
-LINK_NONE=105
-NONE_FOLDER=106
-NONE_LINK=107
-NONE_NONE=108
+LINK_NONE=105 # Done
+NONE_FOLDER=106 # Done
+NONE_LINK=107 # Unreal
+NONE_NONE=108 # Done
 UNKNOWN_UNKNOWN=66
 
 get_case(){
-      local source_path_dir=$1
-      local target_path=$2
+    local source_path_dir=$1
+    local target_path=$2
 
-      local source_relative_path=$(basename "$source_path_dir")
-    local target_dir_name=$(get_linked_name $source_path_dir)
+    local source_relative_path
+    source_relative_path=$(basename "$source_path_dir")
 
+    local target_dir_name
+    target_dir_name=$(get_linked_name "$source_path_dir")
 
-      local target_dir_name="$target_dir_name"
+    local target_dir_name="$target_dir_name"
 
-      local target_path_dir="$target_path/$target_dir_name"
+    local target_path_dir="$target_path/$target_dir_name"
 
     if [[ -L "$source_path_dir" && -d $target_path_dir ]]; then
       echo "Link - Folder"
@@ -111,7 +115,7 @@ handle_folder_none(){
   local error_code=0
 
   # Make directory in the target destination
-  mkdir "$target_path/$target_dir_name"
+  make_target_directory "$target_path" "$target_dir_name"
   error_code=$?
   if ! (($error_code == 0)); then
     return $error_code
@@ -127,15 +131,12 @@ handle_folder_none(){
       fi
   fi
 
-  # Removing source directory
-  rm -rf "${source_path:?}/${source_dir_name}"
+    # Removing source directory
+    rm -rf "${source_path:?}/${source_dir_name}"
 
-  # Linking source directory to target directory
-  ln -s "$target_path/$target_dir_name" "$source_path/$source_dir_name"
-  error_code=$?
-  if ! (($error_code == 0)); then
-    return $error_code
-  fi
+    # Linking source directory to target directory
+    make_link "$source_path" "$source_dir_name" "$target_path" "$target_dir_name"
+    error_code=$?
 
   return $error_code
 }
@@ -158,7 +159,7 @@ handle_link_none(){
         return 1
     fi
 
-    mkdir "$target_path"/"$target_dir_name"
+    make_target_directory "$target_path" "$target_dir_name"
     error_code=$?
     if ! (($error_code == 0)); then
       return $error_code
@@ -167,20 +168,66 @@ handle_link_none(){
     return $error_code
 }
 handle_none_folder(){
-  echo "None - Folder case"
-  # Real case
-  return 0
+    local source_path=$1
+    local source_dir_name=$2
+    local target_path=$3
+    local target_dir_name=$4
+    local error_code=0
+
+    # Linking source directory to target directory
+    make_link "$source_path" "$source_dir_name" "$target_path" "$target_dir_name"
+    error_code=$?
+    return $error_code
 }
 handle_none_link(){
   # Unreal case
   return 0
 }
 handle_none_none(){
-  echo "None - None case"
-  # Real case
-  return 0
+      local source_path=$1
+      local source_dir_name=$2
+      local target_path=$3
+      local target_dir_name=$4
+      local error_code=0
+
+      # Linking source directory to target directory
+      make_link "$source_path" "$source_dir_name" "$target_path" "$target_dir_name"
+      error_code=$?
+      if ! (($error_code == 0)); then
+        return $error_code
+      fi
+
+      make_target_directory "$target_path" "$target_dir_name"
+      error_code=$?
+
+      return $error_code
 }
 
+make_target_directory(){
+      local target_path=$1
+      local target_dir_name=$2
+      local error_code=0
+      # Make directory in the target destination
+      mkdir "$target_path/$target_dir_name"
+      error_code=$?
+
+      return $error_code
+}
+
+make_link(){
+      local source_path=$1
+      local source_dir_name=$2
+      local target_path=$3
+      local target_dir_name=$4
+      local error_code=0
+
+      # Linking source directory to target directory
+      ln -s "$target_path/$target_dir_name" "$source_path/$source_dir_name"
+      error_code=$?
+      if ! (($error_code == 0)); then
+        return $error_code
+      fi
+}
 get_linked_name(){
     local source_path=$1
     local source_relative_path=$(basename "$source_path")
