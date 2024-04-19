@@ -1,3 +1,5 @@
+# Script to make from path to acceptable directory name
+
 get_linked_name(){
     local path=$1
     local new_path="${path//\//_}"

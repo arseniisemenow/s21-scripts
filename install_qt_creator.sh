@@ -1,3 +1,5 @@
+# Script to unpack application from dmg into goinfre
+
 cd "$HOME/Temp/"
 
 hdiutil attach qt-creator-opensource-mac-x86_64-7.0.0.dmg

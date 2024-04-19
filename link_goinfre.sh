@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Script to move folders into goinfre and create symbolic link on its place.
+#
+# [CAUTION!] You may lose all year directories, provided below [CAUTION!]
+# [CAUTION!] Use on your own risk                              [CAUTION!]
+#
+
 paths=(
     "$HOME/Applications"
     "$HOME/Library/Caches/Google"
