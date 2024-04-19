@@ -19,5 +19,5 @@
 --add-opens=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED
 --add-opens=java.base/jdk.internal.org.objectweb.asm.tree=ALL-UNNAMED
 
--Didea.suppressed.plugins.set.selector=classic
+-Didea.suppressed.plugins.set.selector=radler
 -javaagent:/Users/evangelm/Documents/Scripts/jetbra/ja-netfilter.jar=jetbrains

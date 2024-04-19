@@ -6,10 +6,12 @@ paths=(
     "$HOME/Library/Caches/JetBrains"
     "$HOME/Library/Application Support/Google"
     "$HOME/Library/Application Support/JetBrains"
+    "$HOME/Library/Application Support/zoom.us"
     "$HOME/Library/Containers/com.docker.docker"
     "$HOME/Library/Containers/com.apple.Safari"
     "$HOME/Library/Java"
     "$HOME/Pictures"
+    "$HOME/Music"
 )
 
 destination="$HOME/goinfre/linked"
@@ -247,12 +249,14 @@ make_link(){
       fi
 }
 get_linked_name(){
-    local source_path=$1
-    local source_relative_path=$(basename "$source_path")
-    local target_dir_name="linked_$(echo "$source_relative_path" | sed -E 's|/|_|g' | sed -E 's|([a-z])([A-Z])|\1_\2|g' | sed -E 's/(^|_)([a-z])/\U\2/g' | sed -E 's/ /_/g')"
-    echo "$target_dir_name"
-}
-
+     local path=$1
+     local new_path="${path//\//_}"
+     new_path="${new_path// /_}"
+     new_path="${new_path//./_}"
+     new_path="${new_path//-/_}"
+     new_path="linked${new_path}"
+     echo "$new_path"
+ }
 move_and_link() {
     local source_path_dir=$1
     local target_path=$2
