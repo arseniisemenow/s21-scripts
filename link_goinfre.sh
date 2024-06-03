@@ -6,19 +6,38 @@
 # [CAUTION!] Use on your own risk                              [CAUTION!]
 #
 
-paths=(
+CONFIG_DIR="$HOME/.config/link_goinfre"
+CONFIG_FILE="$CONFIG_DIR/paths.conf"
+
+# Default paths to include in the configuration file if it doesn't exist
+DEFAULT_PATHS=(
     "$HOME/Applications"
     "$HOME/Library/Caches/Google"
     "$HOME/Library/Caches/JetBrains"
     "$HOME/Library/Application Support/Google"
     "$HOME/Library/Application Support/JetBrains"
-    "$HOME/Library/Application Support/zoom.us"
     "$HOME/Library/Containers/com.docker.docker"
-    "$HOME/Library/Containers/com.apple.Safari"
-    "$HOME/Library/Java"
-    "$HOME/Pictures"
-    "$HOME/Music"
 )
+
+# Create the configuration directory if it doesn't exist
+mkdir -p "$CONFIG_DIR"
+
+# Create the configuration file if it doesn't exist
+if [[ ! -f "$CONFIG_FILE" ]]; then
+    touch "$CONFIG_FILE"
+    for path in "${DEFAULT_PATHS[@]}"; do
+        echo "$path" >> "$CONFIG_FILE"
+    done
+    echo "Configuration file created at: $CONFIG_FILE with default paths."
+fi
+
+# Read paths from the configuration file
+paths=()
+while IFS= read -r line; do
+    # Skip empty lines and lines starting with #
+    [[ -z "$line" || "$line" =~ ^# ]] && continue
+    paths+=("$line")
+done < "$CONFIG_FILE"
 
 destination="$HOME/goinfre/linked"
 
